@@ -1,0 +1,122 @@
+SELECT * FROM actors;
+
+SELECT * FROM movies;
+
+SELECT * FROM directors;
+
+SELECT * FROM movie_revenues;
+
+--Looking at total revenues earned by each movie
+
+CREATE VIEW movies_rev AS(
+	SELECT m.movie_name,
+		   m.movie_lang,
+		   m.release_date,
+		   (d.first_name||' '||d.last_name) AS "director_name",
+		   (COALESCE(mr.revenues_domestic,0)+COALESCE(mr.revenues_international,0)) AS "Total_revenues"
+    FROM movies AS m
+    INNER JOIN directors AS d 
+    ON m.director_id=d.director_id
+    INNER JOIN movies_revenues AS mr
+    ON m.movie_id=mr.movie_id
+    ORDER BY "Total_revenues" DESC
+)
+
+--Calculating the sum total of the total revenues of all the movies
+--by using the view created in the previous step
+SELECT SUM("Total_revenues") AS "Grand Total"
+FROM movies_rev
+; --SUM("Total_revenues")=12867.50
+
+
+WITH CTE_Movies AS(
+	SELECT m.movie_name,
+			m.movie_lang,
+			m.release_date,
+			(d.first_name||' '||d.last_name) AS "director_name",
+			(COALESCE(mr.revenues_domestic,0)+COALESCE(mr.revenues_international,0)) AS "Total_revenues"
+    FROM movies AS m
+    INNER JOIN directors AS d 
+    ON m.director_id=d.director_id
+    INNER JOIN movies_revenues AS mr
+    ON m.movie_id=mr.movie_id
+    ORDER BY "Total_revenues" DESC
+)
+SELECT movie_name,
+	   "director_name",
+	   "Total_revenues",
+	   (ROUND(("Total_revenues")/12867.50,4)*100) AS "percent_of_total_revenues"
+FROM CTE_Movies
+GROUP BY movie_name, "director_name","Total_revenues"
+ORDER BY "percent_of_total_revenues" DESC
+	
+; --SUM("Total_revenues")=12867.50
+
+    
+--Counting the total number of movies made by each director
+SELECT (d.first_name||' '||d.last_name) AS director_name, 
+		COUNT(m.movie_name)
+FROM movies AS m
+INNER JOIN directors AS d
+ON m.director_id=d.director_id
+GROUP BY director_name
+ORDER BY director_name;
+
+--Creating a view by joining actors, movies, movies_actors, directors and movie_revenues table
+--NULLIF used to replace the 0 values with NULL b/c coalesce replaced all the NULL to 0 for 
+--adding revenues_domestic & revenues_international because NULL can not be added to an int
+CREATE VIEW view_movies AS
+(
+	SELECT m.movie_name,
+			m.movie_length,
+			m.movie_lang,
+			m.release_date,
+			m.age_certificate,
+			(d.first_name||' '||d.last_name) AS "director_name",
+			(a.first_name||' '||a.last_name) AS "actor_name",
+			mr.revenues_domestic,
+			mr.revenues_international,
+			NULLIF((COALESCE(mr.revenues_domestic,0)+COALESCE(mr.revenues_international,0)),0) AS "Total_revenues"
+	FROM movies_actors AS ma
+	INNER JOIN actors AS a
+	ON ma.actor_id=a.actor_id
+	INNER JOIN movies AS m
+	ON ma.movie_id=m.movie_id
+	INNER JOIN directors AS d
+	ON m.director_id=d.director_id
+	INNER JOIN movies_revenues AS mr 
+	ON m.movie_id=mr.movie_id
+);
+SELECT * FROM view_movies;
+
+
+--To look up movies with the highest & lowest total revenues by using subquery
+SELECT movie_name,
+       movie_lang
+	   director_name,
+	   actor_name,
+	   "Total_revenues"
+FROM view_movies
+WHERE "Total_revenues" IN(
+	SELECT MAX("Total_revenues")
+	FROM view_movies
+	UNION
+	SELECT MIN("Total_revenues")
+	FROM view_movies
+)
+ORDER BY "Total_revenues";
+
+--Looking at the Japanese movie with the highest revenues
+SELECT movie_name,
+       movie_lang
+	   director_name,
+	   actor_name,
+	   "Total_revenues"
+FROM view_movies 
+WHERE "Total_revenues" IN(
+	SELECT MAX("Total_revenues") AS "Max_rev"
+	FROM view_movies
+	WHERE  movie_lang='Japanese'	
+)
+
+
