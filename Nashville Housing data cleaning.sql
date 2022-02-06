@@ -2,10 +2,8 @@ SELECT * FROM "Nashville Housing";
 
 SELECT TO_DATE("SaleDate",'Month DD, YYYY') FROM "Nashville Housing";
 
---UPDATE "Nashville Housing"
---SET "SaleDate"=TO_DATE("SaleDate",'Month DD, YYYY');
 
-
+--Changing data type of Date column to DATE instead of TEXT
 ALTER  TABLE "Nashville Housing"
 ALTER COLUMN "SaleDate"
 TYPE date USING TO_DATE("SaleDate",'Month DD, YYYY');
