@@ -74,11 +74,36 @@ SELECT listing_id, COUNT(comments) AS "Toatl reviews"
 FROM reviews
 GROUP BY listing_id;
 
+--Changing data type of column date from text to DATE
+ALTER TABLE reviews
+ALTER COLUMN date
+TYPE DATE USING date::DATE;
+
+--EXTRACTING year from the date column
+SELECT EXTRACT('year'FROM date) FROM reviews;
+
+--Adding new column named year to the review table
+ALTER TABLE reviews
+ADD COLUMN YEAR INTEGER;
+
+--Updating the year column by extracting year from date
+UPDATE reviews
+SET YEAR=EXTRACT('year'FROM date);
+
+--Querying distinct years from the reviews table
+SELECT DISTINCT(Year) FROM reviews;
+
 --CREATING VIEW by joining listings and review table
 CREATE VIEW VIEW_l AS (
-	SELECT l.id, name, price, host_name, room_type, bedrooms, review_scores_value,reviewer_id,comments
+	SELECT l.id, name, price, host_name, room_type, bedrooms, review_scores_value,reviewer_id,comments,Year
 	FROM listings AS l
 	INNER JOIN reviews AS r
 	ON l.id=r.listing_id
-)
-SELECT * FROM VIEW_l;
+);
+--Querying the average price for each year
+SELECT Year,ROUND(AVG(price),2)
+FROM VIEW_l
+GROUP BY Year
+ORDER BY Year;
+
+
