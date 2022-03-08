@@ -33,16 +33,6 @@ ORDER BY "Broad Bean Origin" NULLS FIRST;
 SELECT "Broad Bean Origin" FROM cocoa_flavors
 WHERE  "Broad Bean Origin" =' ';
 
-
-SELECT * FROM cocoa_flavors
-WHERE "Rating" IS NOT NULL;
-
-SELECT * FROM cocoa_flavors
-WHERE "REF" IS NOT NULL;
-
-SELECT * FROM cocoa_flavors
-WHERE "Review Date" IS NOT NULL;
-
 ----Querying the total number of companies in each country
 SELECT "Company Location", COUNT(*) AS "Number of companies" FROM cocoa_flavors
 GROUP BY "Company Location"
